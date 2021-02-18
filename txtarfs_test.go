@@ -3,6 +3,7 @@ package txtarfs_test
 import (
 	"bytes"
 	"io/fs"
+	"sort"
 	"testing"
 	"testing/fstest"
 
@@ -26,6 +27,7 @@ func TestBasics(t *testing.T) {
 			ar.Files = append(ar.Files, txtar.File{Name: name, Data: []byte(data)})
 			names = append(names, name)
 		}
+		sort.Slice(ar.Files, func(i, j int) bool { return ar.Files[i].Name < ar.Files[j].Name })
 		arfs := txtarfs.As(ar)
 		if err := fstest.TestFS(arfs, names...); err != nil {
 			t.Fatal(err)
@@ -39,6 +41,17 @@ func TestBasics(t *testing.T) {
 			if !bytes.Equal([]byte(data), out) {
 				t.Errorf("fs.ReadFile(%s) = %s want %s", name, out, data)
 			}
+		}
+		ar2, err := txtarfs.From(arfs)
+		if err != nil {
+			t.Errorf("failed to write fsys for %v: %v", tt, err)
+			continue
+		}
+		sort.Slice(ar2.Files, func(i, j int) bool { return ar2.Files[i].Name < ar2.Files[j].Name })
+		in := string(txtar.Format(ar))
+		out := string(txtar.Format(ar2))
+		if in != out {
+			t.Errorf("As/From round trip failed: %v != %v", in, out)
 		}
 	}
 }
