@@ -21,6 +21,26 @@ func As(ar *txtar.Archive) fs.FS {
 			Sys: f,
 		}
 	}
+	// chmod all dirs to 0777
+	var dirs []string
+	err := fs.WalkDir(m, ".", func(path string, d fs.DirEntry, err error) error {
+		// TODO: how can we chmod "." 0777?
+		// Removing this check causes test failures.
+		// This may require changes to MapFS.
+		if d.IsDir() && path != "." {
+			dirs = append(dirs, path)
+		}
+		return nil
+	})
+	if err != nil {
+		panic(err) // impossible
+	}
+	for _, d := range dirs {
+		m[d] = &fstest.MapFile{
+			Mode: 0777 | fs.ModeDir,
+			// TODO: maybe ModTime: time.Now(),
+		}
+	}
 	return m
 }
 

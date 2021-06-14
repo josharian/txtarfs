@@ -2,6 +2,7 @@ package txtarfs_test
 
 import (
 	"bytes"
+	"fmt"
 	"io/fs"
 	"sort"
 	"testing"
@@ -42,6 +43,27 @@ func TestBasics(t *testing.T) {
 				t.Errorf("fs.ReadFile(%s) = %s want %s", name, out, data)
 			}
 		}
+
+		err := fs.WalkDir(arfs, ".", func(path string, d fs.DirEntry, err error) error {
+			// TODO: Find a way to remove this path == "." check.
+			// See corresponding TODO in txtarfs.go.
+			if path == "." {
+				return nil
+			}
+			fi, err := d.Info()
+			if err != nil {
+				return err
+			}
+			if mode := fi.Mode().Perm(); mode&0666 != 0666 {
+				return fmt.Errorf("%s has mode %v", path, mode)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Errorf("fs.WalkDir(...) = %v", err)
+			continue
+		}
+
 		ar2, err := txtarfs.From(arfs)
 		if err != nil {
 			t.Errorf("failed to write fsys for %v: %v", tt, err)
