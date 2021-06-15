@@ -16,28 +16,11 @@ func As(ar *txtar.Archive) fs.FS {
 	for _, f := range ar.Files {
 		m[f.Name] = &mapfs.MapFile{
 			Data: f.Data,
-			Mode: 0666,
 			// TODO: maybe ModTime: time.Now(),
 			Sys: f,
 		}
 	}
-	// chmod all dirs to 0777
-	var dirs []string
-	err := fs.WalkDir(m, ".", func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			dirs = append(dirs, path)
-		}
-		return nil
-	})
-	if err != nil {
-		panic(err) // impossible
-	}
-	for _, d := range dirs {
-		m[d] = &mapfs.MapFile{
-			Mode: 0777 | fs.ModeDir,
-			// TODO: maybe ModTime: time.Now(),
-		}
-	}
+	m.ChmodAll(0666)
 	return m
 }
 
