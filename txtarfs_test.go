@@ -45,11 +45,6 @@ func TestBasics(t *testing.T) {
 		}
 
 		err := fs.WalkDir(arfs, ".", func(path string, d fs.DirEntry, err error) error {
-			// TODO: Find a way to remove this path == "." check.
-			// See corresponding TODO in txtarfs.go.
-			if path == "." {
-				return nil
-			}
 			fi, err := d.Info()
 			if err != nil {
 				return err

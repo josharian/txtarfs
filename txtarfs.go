@@ -3,8 +3,8 @@ package txtarfs
 
 import (
 	"io/fs"
-	"testing/fstest"
 
+	"github.com/josharian/mapfs"
 	"golang.org/x/tools/txtar"
 )
 
@@ -12,9 +12,9 @@ import (
 // Subsequent changes to ar may or may not
 // be reflected in the returned fs.FS.
 func As(ar *txtar.Archive) fs.FS {
-	m := make(fstest.MapFS, len(ar.Files))
+	m := make(mapfs.MapFS, len(ar.Files))
 	for _, f := range ar.Files {
-		m[f.Name] = &fstest.MapFile{
+		m[f.Name] = &mapfs.MapFile{
 			Data: f.Data,
 			Mode: 0666,
 			// TODO: maybe ModTime: time.Now(),
@@ -24,10 +24,7 @@ func As(ar *txtar.Archive) fs.FS {
 	// chmod all dirs to 0777
 	var dirs []string
 	err := fs.WalkDir(m, ".", func(path string, d fs.DirEntry, err error) error {
-		// TODO: how can we chmod "." 0777?
-		// Removing this check causes test failures.
-		// This may require changes to MapFS.
-		if d.IsDir() && path != "." {
+		if d.IsDir() {
 			dirs = append(dirs, path)
 		}
 		return nil
@@ -36,7 +33,7 @@ func As(ar *txtar.Archive) fs.FS {
 		panic(err) // impossible
 	}
 	for _, d := range dirs {
-		m[d] = &fstest.MapFile{
+		m[d] = &mapfs.MapFile{
 			Mode: 0777 | fs.ModeDir,
 			// TODO: maybe ModTime: time.Now(),
 		}
