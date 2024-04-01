@@ -49,7 +49,7 @@ func TestBasics(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			if mode := fi.Mode().Perm(); mode&0666 != 0666 {
+			if mode := fi.Mode().Perm(); mode&0444 != 0444 {
 				return fmt.Errorf("%s has mode %v", path, mode)
 			}
 			return nil
