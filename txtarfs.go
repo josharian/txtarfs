@@ -8,7 +8,7 @@ import (
 	"golang.org/x/tools/txtar"
 )
 
-// As returns an fs.FS containing ar's contents.
+// As returns an [io/fs.FS] containing ar's contents.
 // Subsequent changes to ar may or may not
 // be reflected in the returned fs.FS.
 func As(ar *txtar.Archive) fs.FS {
@@ -24,7 +24,7 @@ func As(ar *txtar.Archive) fs.FS {
 	return m
 }
 
-// From constructs a txtar.Archive with the contents of fsys and an empty Comment.
+// From constructs a [txtar.Archive] with the contents of fsys and an empty Comment.
 // Subsequent changes to fsys are not reflected in the returned archive.
 //
 // The transformation is lossy.
@@ -32,13 +32,15 @@ func As(ar *txtar.Archive) fs.FS {
 // empty directories in fsys will be lost.
 // And txtar does not represent file mode, mtime, or other file metadata.
 //
-// Note also this warning from function txtar.Format:
-//   > It is assumed that the Archive data structure is well-formed:
-//   > a.Comment and all a.File[i].Data contain no file marker lines,
-//   > and all a.File[i].Name is non-empty.
+// Note also this warning from function [txtar.Format]:
+//
+//	It is assumed that the Archive data structure is well-formed:
+//	a.Comment and all a.File[i].Data contain no file marker lines,
+//	and all a.File[i].Name is non-empty.
+//
 // From does not guarantee that a.File[i].Data contain no file marker lines.
 //
-// In short, it is unwise to use From/As as a generic filesystem serialization mechanism.
+// In short, it is unwise to use From/[As] as a generic filesystem serialization mechanism.
 func From(fsys fs.FS) (*txtar.Archive, error) {
 	ar := new(txtar.Archive)
 	walkfn := func(path string, d fs.DirEntry, err error) error {
