@@ -2,6 +2,7 @@
 package txtarfs
 
 import (
+	"errors"
 	"io/fs"
 
 	"github.com/josharian/mapfs"
@@ -53,6 +54,13 @@ func From(fsys fs.FS) (*txtar.Archive, error) {
 		}
 		data, err := fs.ReadFile(fsys, path)
 		if err != nil {
+			if errors.Is(err, fs.ErrPermission) {
+				// Skip if marked as not readable in FileMode in either user/group/others
+				// (the io/fs.FS API doesn't tell which one is enforced)
+				if info, err2 := d.Info(); err2 == nil && info.Mode()&0444 != 0444 {
+					return nil
+				}
+			}
 			return err
 		}
 		ar.Files = append(ar.Files, txtar.File{Name: path, Data: data})
