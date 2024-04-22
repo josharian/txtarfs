@@ -20,7 +20,10 @@ func As(ar *txtar.Archive) fs.FS {
 			Sys: f,
 		}
 	}
-	m.ChmodAll(0666)
+	// Create entries for directories
+	// Mark files as read-only
+	// Mark directories as read-only but traversable
+	m.ChmodAll(0444)
 	return m
 }
 
